@@ -94,14 +94,6 @@ export default function HomePage({ onNavigate }: Props) {
             >
               My Bookings
             </button>
-            <button
-              type="button"
-              data-ocid="nav.admin.link"
-              onClick={() => onNavigate("admin")}
-              className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium uppercase tracking-wide"
-            >
-              Admin
-            </button>
           </nav>
 
           <div className="flex items-center gap-3">

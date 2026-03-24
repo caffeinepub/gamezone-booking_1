@@ -15,6 +15,7 @@ export function useActor() {
       const isAuthenticated = !!identity;
 
       if (!isAuthenticated) {
+        // Return anonymous actor if not authenticated
         return await createActorWithConfig();
       }
 
@@ -26,13 +27,18 @@ export function useActor() {
 
       const actor = await createActorWithConfig(actorOptions);
       const adminToken = getSecretParameter("caffeineAdminToken") || "";
-      await actor._initializeAccessControlWithSecret(adminToken);
+      try {
+        await actor._initializeAccessControlWithSecret(adminToken);
+      } catch (_e) {
+        // Token init failure should not prevent actor from being returned
+      }
       return actor;
     },
+    // Only refetch when identity changes
     staleTime: Number.POSITIVE_INFINITY,
+    // This will cause the actor to be recreated when the identity changes
     enabled: true,
     retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
   });
 
   // When the actor changes, invalidate dependent queries
@@ -52,11 +58,10 @@ export function useActor() {
   }, [actorQuery.data, queryClient]);
 
   const refetch = () => {
-    // Remove cached failure so the query can retry fresh
-    queryClient.removeQueries({
+    queryClient.resetQueries({
       queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
     });
-    return actorQuery.refetch();
+    actorQuery.refetch();
   };
 
   return {
