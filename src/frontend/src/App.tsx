@@ -8,8 +8,36 @@ import MyBookingsPage from "./pages/MyBookingsPage";
 
 export type Page = "home" | "booking" | "myBookings" | "admin";
 
+function pathToPage(pathname: string): Page {
+  switch (pathname) {
+    case "/admin":
+      return "admin";
+    case "/my-bookings":
+      return "myBookings";
+    case "/booking":
+      return "booking";
+    default:
+      return "home";
+  }
+}
+
+function pageToPath(page: Page): string {
+  switch (page) {
+    case "admin":
+      return "/admin";
+    case "myBookings":
+      return "/my-bookings";
+    case "booking":
+      return "/booking";
+    default:
+      return "/";
+  }
+}
+
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>("home");
+  const [currentPage, setCurrentPage] = useState<Page>(() =>
+    pathToPage(window.location.pathname),
+  );
   const [selectedGameType, setSelectedGameType] = useState<ResourceType>(
     ResourceType.ps5Console,
   );
@@ -17,6 +45,7 @@ export default function App() {
   const navigateTo = (page: Page, gameType?: ResourceType) => {
     if (gameType) setSelectedGameType(gameType);
     setCurrentPage(page);
+    window.history.pushState(null, "", pageToPath(page));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
