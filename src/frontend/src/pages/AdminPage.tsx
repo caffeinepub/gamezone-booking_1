@@ -97,7 +97,7 @@ export default function AdminPage({ onNavigate }: Props) {
   }, [identity]);
 
   useEffect(() => {
-    if (!actor || !isAdmin) return;
+    if (!actor || !isAdmin || !identity) return;
     Promise.all([
       actor.getAdminStats(),
       actor.getAllResources(),
@@ -109,17 +109,17 @@ export default function AdminPage({ onNavigate }: Props) {
         setCoupons(c);
       })
       .catch(() => toast.error("Failed to load admin data"));
-  }, [actor, isAdmin]);
+  }, [actor, isAdmin, identity]);
 
   useEffect(() => {
-    if (!actor || !isAdmin || activeTab !== "bookings") return;
+    if (!actor || !isAdmin || !identity || activeTab !== "bookings") return;
     setLoadingBookings(true);
     actor
       .getAllBookings()
       .then(setBookings)
       .catch(() => toast.error("Failed to load bookings"))
       .finally(() => setLoadingBookings(false));
-  }, [actor, isAdmin, activeTab]);
+  }, [actor, isAdmin, identity, activeTab]);
 
   const handleAddResource = async () => {
     // Client-side validation matching backend constraints

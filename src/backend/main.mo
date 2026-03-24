@@ -1,10 +1,11 @@
+import Map "mo:core/Map";
 import Text "mo:core/Text";
+import Order "mo:core/Order";
 import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Time "mo:core/Time";
 import Array "mo:core/Array";
-import Map "mo:core/Map";
-import Order "mo:core/Order";
+import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 
