@@ -42,7 +42,12 @@ const RESOURCE_TYPE_OPTIONS = [
 ];
 
 export default function AdminPage({ onNavigate }: Props) {
-  const { actor, isFetching: actorLoading, refetch: retryActor } = useActor();
+  const {
+    actor,
+    isFetching: actorLoading,
+    isError: actorError,
+    refetch: retryActor,
+  } = useActor();
   const { identity, login, isLoggingIn } = useInternetIdentity();
 
   const [checking, setChecking] = useState(true);
@@ -112,12 +117,8 @@ export default function AdminPage({ onNavigate }: Props) {
       toast.error("Please fill all resource fields");
       return;
     }
-    // Then check actor connection
-    if (!actor) {
-      retryActor();
-      toast.error("Connecting to backend, please try again in a moment.");
-      return;
-    }
+    // actor is guaranteed to be ready here because button is disabled otherwise
+    if (!actor) return;
     setAddingRes(true);
     try {
       const r = await actor.addResource(
@@ -182,6 +183,8 @@ export default function AdminPage({ onNavigate }: Props) {
     { id: "bookings", label: "Bookings" },
     { id: "coupons", label: "Coupons" },
   ];
+
+  const isBackendReady = !!actor && !actorLoading;
 
   return (
     <div className="min-h-screen">
@@ -387,11 +390,26 @@ export default function AdminPage({ onNavigate }: Props) {
                     </p>
                   )}
 
+                  {actorError && !actorLoading && (
+                    <div className="flex items-center gap-3 mt-3">
+                      <p className="text-xs text-destructive">
+                        Backend connection failed.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => retryActor()}
+                        className="text-xs text-primary underline hover:no-underline"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     data-ocid="admin.resource.add.primary_button"
                     onClick={handleAddResource}
-                    disabled={addingRes || actorLoading}
+                    disabled={addingRes || !isBackendReady}
                     className="btn-primary mt-4 px-6 py-2.5 text-sm disabled:opacity-60"
                   >
                     {addingRes ? (
