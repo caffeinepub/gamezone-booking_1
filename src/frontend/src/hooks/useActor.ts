@@ -32,7 +32,7 @@ export function useActor() {
     staleTime: Number.POSITIVE_INFINITY,
     enabled: true,
     retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
   });
 
   // When the actor changes, invalidate dependent queries
@@ -52,8 +52,11 @@ export function useActor() {
   }, [actorQuery.data, queryClient]);
 
   const refetch = () => {
-    queryClient.removeQueries({ queryKey: [ACTOR_QUERY_KEY] });
-    actorQuery.refetch();
+    // Remove cached failure so the query can retry fresh
+    queryClient.removeQueries({
+      queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
+    });
+    return actorQuery.refetch();
   };
 
   return {
