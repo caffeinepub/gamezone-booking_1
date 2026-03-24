@@ -14,6 +14,7 @@ export const Coupon = IDL.Record({
   'isActive' : IDL.Bool,
 });
 export const ResourceType = IDL.Variant({
+  'snookerTable' : IDL.Null,
   'ps4Console' : IDL.Null,
   'ps5Console' : IDL.Null,
   'poolTable' : IDL.Null,
@@ -108,7 +109,7 @@ export const idlService = IDL.Service({
   'getAvailableSlots' : IDL.Func(
       [IDL.Nat, IDL.Int, IDL.Int],
       [IDL.Vec(IDL.Int)],
-      [],
+      ['query'],
     ),
   'getBlockedSlotsForResource' : IDL.Func(
       [IDL.Nat],
@@ -139,6 +140,7 @@ export const idlFactory = ({ IDL }) => {
     'isActive' : IDL.Bool,
   });
   const ResourceType = IDL.Variant({
+    'snookerTable' : IDL.Null,
     'ps4Console' : IDL.Null,
     'ps5Console' : IDL.Null,
     'poolTable' : IDL.Null,
@@ -233,7 +235,7 @@ export const idlFactory = ({ IDL }) => {
     'getAvailableSlots' : IDL.Func(
         [IDL.Nat, IDL.Int, IDL.Int],
         [IDL.Vec(IDL.Int)],
-        [],
+        ['query'],
       ),
     'getBlockedSlotsForResource' : IDL.Func(
         [IDL.Nat],

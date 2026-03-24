@@ -36,6 +36,15 @@ const GAMES = [
     priceHalf: 60,
     color: "accent",
   },
+  {
+    type: ResourceType.snookerTable,
+    icon: "🎯",
+    title: "Snooker",
+    desc: "Full-size snooker tables with professional cues and accessories.",
+    priceHr: 250,
+    priceHalf: 150,
+    color: "secondary",
+  },
 ];
 
 const FEATURES = [
@@ -73,7 +82,7 @@ export default function HomePage({ onNavigate }: Props) {
           >
             <Gamepad2 className="w-7 h-7 text-primary" />
             <span className="text-foreground">GAME</span>
-            <span className="text-primary">ZONE</span>
+            <span className="text-primary">&amp; GO</span>
           </button>
 
           <nav className="hidden md:flex items-center gap-6">
@@ -138,7 +147,7 @@ export default function HomePage({ onNavigate }: Props) {
             transition={{ duration: 0.5 }}
             className="section-title mb-6"
           >
-            🎮 Hyderabad's #1 Gaming Parlour
+            🎮 Ludhiana's #1 Gaming Parlour
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -195,7 +204,7 @@ export default function HomePage({ onNavigate }: Props) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {GAMES.map((game, i) => (
               <motion.div
                 key={game.type}
@@ -249,7 +258,7 @@ export default function HomePage({ onNavigate }: Props) {
       <section className="py-20 px-4 bg-muted/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <p className="section-title">— Why GameZone —</p>
+            <p className="section-title">— Why Game &amp; Go —</p>
             <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">
               BUILT TO RUN YOUR GAME
             </h2>
@@ -320,7 +329,7 @@ export default function HomePage({ onNavigate }: Props) {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Gamepad2 className="w-5 h-5 text-primary" />
-            <span className="font-black tracking-wider">GAMEZONE</span>
+            <span className="font-black tracking-wider">GAME &amp; GO</span>
           </div>
           <p className="text-xs text-muted-foreground text-center">
             © {new Date().getFullYear()}. Built with ❤️ using{" "}
@@ -337,6 +346,7 @@ export default function HomePage({ onNavigate }: Props) {
             <span>PS5 Gaming</span>
             <span>PS4 Gaming</span>
             <span>8 Ball Pool</span>
+            <span>Snooker</span>
           </div>
         </div>
       </footer>

@@ -27,6 +27,7 @@ const GAME_LABELS: Record<ResourceType, { label: string; icon: string }> = {
   [ResourceType.poolTable]: { label: "8 Ball Pool", icon: "🎱" },
   [ResourceType.ps4Console]: { label: "PS4 Gaming", icon: "🎮" },
   [ResourceType.ps5Console]: { label: "PS5 Zone", icon: "🕹️" },
+  [ResourceType.snookerTable]: { label: "Snooker", icon: "🎯" },
 };
 
 const DURATIONS = [30, 60, 90, 120];
@@ -638,7 +639,7 @@ export default function BookingPage({ selectedGameType, onNavigate }: Props) {
                 BOOKING CONFIRMED!
               </h2>
               <p className="text-muted-foreground mb-6">
-                Your slot is locked in. See you at GameZone!
+                Your slot is locked in. See you at Game &amp; Go!
               </p>
 
               <div className="neon-card p-6 mb-8 text-left">

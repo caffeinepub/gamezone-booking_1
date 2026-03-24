@@ -58,7 +58,8 @@ export interface Resource {
   'resourceType' : ResourceType,
   'basePricePerHour' : bigint,
 }
-export type ResourceType = { 'ps4Console' : null } |
+export type ResourceType = { 'snookerTable' : null } |
+  { 'ps4Console' : null } |
   { 'ps5Console' : null } |
   { 'poolTable' : null };
 export type UserRole = { 'admin' : null } |

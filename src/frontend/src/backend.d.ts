@@ -60,6 +60,7 @@ export enum PaymentMethod {
     cash = "cash"
 }
 export enum ResourceType {
+    snookerTable = "snookerTable",
     ps4Console = "ps4Console",
     ps5Console = "ps5Console",
     poolTable = "poolTable"

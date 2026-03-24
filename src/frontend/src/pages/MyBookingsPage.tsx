@@ -24,6 +24,7 @@ const GAME_ICONS: Record<string, string> = {
   poolTable: "🎱",
   ps4Console: "🎮",
   ps5Console: "🕹️",
+  snookerTable: "🎯",
 };
 
 export default function MyBookingsPage({ onNavigate }: Props) {

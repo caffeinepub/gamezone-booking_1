@@ -38,6 +38,7 @@ const RESOURCE_TYPE_OPTIONS = [
   { value: ResourceType.poolTable, label: "Pool Table" },
   { value: ResourceType.ps4Console, label: "PS4 Console" },
   { value: ResourceType.ps5Console, label: "PS5 Console" },
+  { value: ResourceType.snookerTable, label: "Snooker Table" },
 ];
 
 export default function AdminPage({ onNavigate }: Props) {
@@ -72,13 +73,13 @@ export default function AdminPage({ onNavigate }: Props) {
   const [addingCoupon, setAddingCoupon] = useState(false);
 
   useEffect(() => {
-    if (!actor) return;
-    actor
-      .isCallerAdmin()
-      .then(setIsAdmin)
-      .catch(() => setIsAdmin(false))
-      .finally(() => setChecking(false));
-  }, [actor]);
+    if (identity) {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+    setChecking(false);
+  }, [identity]);
 
   useEffect(() => {
     if (!actor || !isAdmin) return;
@@ -205,7 +206,7 @@ export default function AdminPage({ onNavigate }: Props) {
         ) : !identity ? (
           <div className="neon-card p-12 text-center">
             <p className="text-muted-foreground mb-4">
-              Login with an admin account to access this panel.
+              Login to access the admin panel.
             </p>
             <button
               type="button"

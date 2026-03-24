@@ -8,13 +8,16 @@ import Map "mo:core/Map";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
+// Migration to add snooker tables as a new resource type
 
 actor {
   // Types
   type BookingStatus = { #pending; #confirmed; #completed; #cancelled };
-  type ResourceType = { #poolTable; #ps4Console; #ps5Console };
+  type ResourceType = { #poolTable; #ps4Console; #ps5Console; #snookerTable };
   type PaymentMethod = { #cash; #upi; #creditCard };
 
   type Resource = {
@@ -163,6 +166,10 @@ actor {
 
   // Initialization - Seed default resources
   public shared ({ caller }) func initializeSystem() : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can initialize the system");
+    };
+
     if (resources.size() > 0) {
       Runtime.trap("System already initialized");
     };
@@ -194,6 +201,12 @@ actor {
       },
       {
         name = "PS5 Console 1";
+        resourceType = #ps5Console;
+        basePricePerHour = 200;
+        basePricePerHalfHour = 100;
+      },
+      {
+        name = "PS5 Console 2";
         resourceType = #ps5Console;
         basePricePerHour = 200;
         basePricePerHalfHour = 100;
@@ -306,7 +319,7 @@ actor {
   };
 
   // Get Available Slots (for 30-minute intervals)
-  public shared ({ caller }) func getAvailableSlots(resourceId : Nat, dateStartNanos : Int, dateEndNanos : Int) : async [Int] {
+  public query ({ caller }) func getAvailableSlots(resourceId : Nat, dateStartNanos : Int, dateEndNanos : Int) : async [Int] {
     let resource = getResourceInternal(resourceId);
     if (not resource.isActive) {
       Runtime.trap("Resource is not available");

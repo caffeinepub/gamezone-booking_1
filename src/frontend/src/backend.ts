@@ -142,6 +142,7 @@ export enum PaymentMethod {
     cash = "cash"
 }
 export enum ResourceType {
+    snookerTable = "snookerTable",
     ps4Console = "ps4Console",
     ps5Console = "ps5Console",
     poolTable = "poolTable"
@@ -622,13 +623,15 @@ function from_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Ui
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
 function from_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    snookerTable: null;
+} | {
     ps4Console: null;
 } | {
     ps5Console: null;
 } | {
     poolTable: null;
 }): ResourceType {
-    return "ps4Console" in value ? ResourceType.ps4Console : "ps5Console" in value ? ResourceType.ps5Console : "poolTable" in value ? ResourceType.poolTable : value;
+    return "snookerTable" in value ? ResourceType.snookerTable : "ps4Console" in value ? ResourceType.ps4Console : "ps5Console" in value ? ResourceType.ps5Console : "poolTable" in value ? ResourceType.poolTable : value;
 }
 function from_candid_vec_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Booking>): Array<Booking> {
     return value.map((x)=>from_candid_Booking_n9(_uploadFile, _downloadFile, x));
@@ -664,13 +667,17 @@ function to_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint
     } : value;
 }
 function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ResourceType): {
+    snookerTable: null;
+} | {
     ps4Console: null;
 } | {
     ps5Console: null;
 } | {
     poolTable: null;
 } {
-    return value == ResourceType.ps4Console ? {
+    return value == ResourceType.snookerTable ? {
+        snookerTable: null
+    } : value == ResourceType.ps4Console ? {
         ps4Console: null
     } : value == ResourceType.ps5Console ? {
         ps5Console: null
