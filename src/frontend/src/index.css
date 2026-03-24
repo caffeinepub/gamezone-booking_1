@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Neon game theme tokens */
+    --neon-purple: 0.62 0.27 293;
+    --neon-cyan: 0.82 0.14 200;
+    --neon-green: 0.74 0.2 145;
+    --game-bg: 0.08 0.01 220;
+    --game-bg-2: 0.11 0.015 220;
+    --game-card: 0.12 0.015 220;
+    --game-muted-text: 0.73 0.01 220;
+
+    /* Semantic tokens mapped to dark cyber palette */
+    --background: 0.08 0.01 220;
+    --foreground: 0.97 0 0;
+    --card: 0.12 0.015 220;
+    --card-foreground: 0.97 0 0;
+    --popover: 0.14 0.015 220;
+    --popover-foreground: 0.97 0 0;
+    --primary: 0.82 0.14 200;
+    --primary-foreground: 0.08 0.01 220;
+    --secondary: 0.74 0.2 145;
+    --secondary-foreground: 0.08 0.01 220;
+    --muted: 0.18 0.01 220;
+    --muted-foreground: 0.73 0.01 220;
+    --accent: 0.62 0.27 293;
+    --accent-foreground: 0.97 0 0;
+    --destructive: 0.6 0.22 25;
+    --destructive-foreground: 0.97 0 0;
+    --border: 0.22 0.02 220;
+    --input: 0.22 0.02 220;
+    --ring: 0.62 0.27 293;
+
+    --chart-1: 0.82 0.14 200;
+    --chart-2: 0.62 0.27 293;
+    --chart-3: 0.74 0.2 145;
+    --chart-4: 0.8 0.18 65;
+    --chart-5: 0.65 0.22 25;
+
+    --sidebar: 0.1 0.012 220;
+    --sidebar-foreground: 0.97 0 0;
+    --sidebar-primary: 0.82 0.14 200;
+    --sidebar-primary-foreground: 0.08 0.01 220;
+    --sidebar-accent: 0.62 0.27 293;
+    --sidebar-accent-foreground: 0.97 0 0;
+    --sidebar-border: 0.22 0.02 220;
+    --sidebar-ring: 0.62 0.27 293;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-poppins;
+    background-image: radial-gradient(
+        ellipse at 20% 50%,
+        oklch(0.62 0.27 293 / 0.04) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse at 80% 20%,
+        oklch(0.82 0.14 200 / 0.04) 0%,
+        transparent 60%
+      );
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Montserrat", "Poppins", sans-serif;
+  }
+}
+
+@layer components {
+  .neon-card {
+    @apply bg-card border border-accent/40 rounded-xl shadow-neon-purple;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .neon-card:hover {
+    @apply border-accent shadow-neon-purple-lg;
+  }
+  .btn-cyber {
+    @apply rounded-full px-6 py-2.5 font-semibold text-sm uppercase tracking-wider transition-all duration-200;
+  }
+  .btn-primary {
+    @apply btn-cyber bg-primary text-primary-foreground shadow-neon-cyan hover:shadow-neon-cyan-lg hover:scale-105;
+  }
+  .btn-secondary {
+    @apply btn-cyber border border-secondary text-secondary bg-transparent hover:bg-secondary/10 hover:shadow-neon-green;
+  }
+  .btn-accent {
+    @apply btn-cyber border border-accent text-accent bg-transparent hover:bg-accent/10 hover:shadow-neon-purple;
+  }
+  .section-title {
+    @apply text-xs font-bold uppercase tracking-[0.2em] text-accent mb-2;
+  }
+  .glow-text-cyan {
+    text-shadow: 0 0 20px oklch(0.82 0.14 200 / 0.8);
+  }
+  .glow-text-purple {
+    text-shadow: 0 0 20px oklch(0.62 0.27 293 / 0.8);
+  }
+}
