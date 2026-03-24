@@ -42,7 +42,7 @@ const RESOURCE_TYPE_OPTIONS = [
 ];
 
 export default function AdminPage({ onNavigate }: Props) {
-  const { actor } = useActor();
+  const { actor, isFetching: actorLoading, refetch: retryActor } = useActor();
   const { identity, login, isLoggingIn } = useInternetIdentity();
 
   const [checking, setChecking] = useState(true);
@@ -107,8 +107,15 @@ export default function AdminPage({ onNavigate }: Props) {
   }, [actor, isAdmin, activeTab]);
 
   const handleAddResource = async () => {
-    if (!actor || !newResName.trim() || !newResPriceHr || !newResPriceHalf) {
-      toast.error("Fill all resource fields");
+    // Validate fields first
+    if (!newResName.trim() || !newResPriceHr || !newResPriceHalf) {
+      toast.error("Please fill all resource fields");
+      return;
+    }
+    // Then check actor connection
+    if (!actor) {
+      retryActor();
+      toast.error("Connecting to backend, please try again in a moment.");
       return;
     }
     setAddingRes(true);
@@ -369,16 +376,31 @@ export default function AdminPage({ onNavigate }: Props) {
                       />
                     </div>
                   </div>
+
+                  {actorLoading && (
+                    <p
+                      className="flex items-center gap-2 text-xs text-muted-foreground mt-3"
+                      data-ocid="admin.resource.loading_state"
+                    >
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Connecting to backend…
+                    </p>
+                  )}
+
                   <button
                     type="button"
                     data-ocid="admin.resource.add.primary_button"
                     onClick={handleAddResource}
-                    disabled={addingRes}
+                    disabled={addingRes || actorLoading}
                     className="btn-primary mt-4 px-6 py-2.5 text-sm disabled:opacity-60"
                   >
                     {addingRes ? (
                       <span className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" /> Adding…
+                      </span>
+                    ) : actorLoading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Connecting…
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
