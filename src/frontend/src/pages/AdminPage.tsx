@@ -41,6 +41,16 @@ const RESOURCE_TYPE_OPTIONS = [
   { value: ResourceType.snookerTable, label: "Snooker Table" },
 ];
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    // Extract trap message from ICP error
+    const match = err.message.match(/Reject text: (.+)/);
+    if (match) return match[1];
+    return err.message;
+  }
+  return String(err);
+}
+
 export default function AdminPage({ onNavigate }: Props) {
   const {
     actor,
@@ -112,28 +122,45 @@ export default function AdminPage({ onNavigate }: Props) {
   }, [actor, isAdmin, activeTab]);
 
   const handleAddResource = async () => {
-    // Validate fields first
+    // Client-side validation matching backend constraints
     if (!newResName.trim() || !newResPriceHr || !newResPriceHalf) {
       toast.error("Please fill all resource fields");
       return;
     }
-    // actor is guaranteed to be ready here because button is disabled otherwise
-    if (!actor) return;
+    if (newResName.trim().length < 5) {
+      toast.error("Name must be at least 5 characters long");
+      return;
+    }
+    const priceHr = Number(newResPriceHr);
+    const priceHalf = Number(newResPriceHalf);
+    if (priceHr < 50 || priceHr > 500) {
+      toast.error("Price per hour must be between ₹50 and ₹500");
+      return;
+    }
+    if (priceHalf < 25 || priceHalf > 300) {
+      toast.error("Price per 30 min must be between ₹25 and ₹300");
+      return;
+    }
+    if (!actor) {
+      toast.error("Backend not connected. Please wait or click Retry.");
+      return;
+    }
     setAddingRes(true);
     try {
       const r = await actor.addResource(
         newResName.trim(),
         newResType,
-        BigInt(Math.round(Number(newResPriceHr))),
-        BigInt(Math.round(Number(newResPriceHalf))),
+        BigInt(Math.round(priceHr)),
+        BigInt(Math.round(priceHalf)),
       );
       setResources((prev) => [...prev, r]);
       setNewResName("");
       setNewResPriceHr("");
       setNewResPriceHalf("");
       toast.success("Resource added!");
-    } catch {
-      toast.error("Failed to add resource");
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Failed to add resource");
     } finally {
       setAddingRes(false);
     }
@@ -150,8 +177,9 @@ export default function AdminPage({ onNavigate }: Props) {
         prev.map((b) => (b.id === bookingId ? updated : b)),
       );
       toast.success("Status updated");
-    } catch {
-      toast.error("Failed to update status");
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Failed to update status");
     }
   };
 
@@ -160,18 +188,28 @@ export default function AdminPage({ onNavigate }: Props) {
       toast.error("Fill coupon fields");
       return;
     }
+    if (newCouponCode.trim().length < 5) {
+      toast.error("Coupon code must be at least 5 characters");
+      return;
+    }
+    const disc = Number(newCouponDiscount);
+    if (disc < 5 || disc > 50) {
+      toast.error("Discount must be between 5% and 50%");
+      return;
+    }
     setAddingCoupon(true);
     try {
       const c = await actor.addCoupon(
         newCouponCode.trim().toUpperCase(),
-        BigInt(Math.round(Number(newCouponDiscount))),
+        BigInt(Math.round(disc)),
       );
       setCoupons((prev) => [...prev, c]);
       setNewCouponCode("");
       setNewCouponDiscount("");
       toast.success("Coupon added!");
-    } catch {
-      toast.error("Failed to add coupon");
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Failed to add coupon");
     } finally {
       setAddingCoupon(false);
     }
@@ -314,7 +352,10 @@ export default function AdminPage({ onNavigate }: Props) {
 
                 {/* Add form */}
                 <div className="neon-card p-6 mb-6">
-                  <p className="section-title mb-4">ADD NEW RESOURCE</p>
+                  <p className="section-title mb-1">ADD NEW RESOURCE</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Name ≥ 5 chars · Price/hr: ₹50–500 · Price/30min: ₹25–300
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -352,13 +393,15 @@ export default function AdminPage({ onNavigate }: Props) {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Price/hr (₹)
+                        Price/hr (₹50–500)
                       </p>
                       <input
                         id="admin-res-hr"
                         data-ocid="admin.resource.price_hr.input"
                         type="number"
-                        placeholder="100"
+                        placeholder="200"
+                        min="50"
+                        max="500"
                         value={newResPriceHr}
                         onChange={(e) => setNewResPriceHr(e.target.value)}
                         className="mt-1 w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
@@ -366,13 +409,15 @@ export default function AdminPage({ onNavigate }: Props) {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Price/30min (₹)
+                        Price/30min (₹25–300)
                       </p>
                       <input
                         id="admin-res-half"
                         data-ocid="admin.resource.price_half.input"
                         type="number"
-                        placeholder="60"
+                        placeholder="120"
+                        min="25"
+                        max="300"
                         value={newResPriceHalf}
                         onChange={(e) => setNewResPriceHalf(e.target.value)}
                         className="mt-1 w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
@@ -623,7 +668,10 @@ export default function AdminPage({ onNavigate }: Props) {
                 </h2>
 
                 <div className="neon-card p-6 mb-6">
-                  <p className="section-title mb-4">ADD COUPON</p>
+                  <p className="section-title mb-1">ADD COUPON</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Code ≥ 5 chars · Discount: 5%–50%
+                  </p>
                   <div className="flex flex-wrap gap-4">
                     <div className="flex-1 min-w-[160px]">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -633,7 +681,7 @@ export default function AdminPage({ onNavigate }: Props) {
                         id="admin-coupon-code"
                         data-ocid="admin.coupon.code.input"
                         type="text"
-                        placeholder="HAPPYHOUR"
+                        placeholder="HAPPY20"
                         value={newCouponCode}
                         onChange={(e) =>
                           setNewCouponCode(e.target.value.toUpperCase())
@@ -643,15 +691,15 @@ export default function AdminPage({ onNavigate }: Props) {
                     </div>
                     <div className="flex-1 min-w-[120px]">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Discount %
+                        Discount % (5–50)
                       </p>
                       <input
                         id="admin-coupon-disc"
                         data-ocid="admin.coupon.discount.input"
                         type="number"
                         placeholder="20"
-                        min="1"
-                        max="100"
+                        min="5"
+                        max="50"
                         value={newCouponDiscount}
                         onChange={(e) => setNewCouponDiscount(e.target.value)}
                         className="mt-1 w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
