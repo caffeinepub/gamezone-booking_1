@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import type { backendInterface } from "../backend";
 import { createActorWithConfig } from "../config";
 import { getSecretParameter } from "../utils/urlParams";
@@ -30,11 +30,12 @@ export function useActor() {
       return actor;
     },
     staleTime: Number.POSITIVE_INFINITY,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     enabled: true,
+    // Don't auto-retry excessively; manual retry is available
+    retry: 1,
   });
 
+  // When the actor changes, invalidate dependent queries
   useEffect(() => {
     if (actorQuery.data) {
       queryClient.invalidateQueries({
@@ -50,10 +51,18 @@ export function useActor() {
     }
   }, [actorQuery.data, queryClient]);
 
+  const refetch = useCallback(() => {
+    // Remove any cached error so React Query will try fresh
+    queryClient.removeQueries({
+      queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
+    });
+    actorQuery.refetch();
+  }, [queryClient, identity, actorQuery]);
+
   return {
     actor: actorQuery.data || null,
     isFetching: actorQuery.isFetching,
     isError: actorQuery.isError,
-    refetch: actorQuery.refetch,
+    refetch,
   };
 }
