@@ -26,21 +26,18 @@ export function useActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
-
       // Wrap in try/catch so a token failure never kills the actor
       try {
         const adminToken = getSecretParameter("caffeineAdminToken") || "";
         await actor._initializeAccessControlWithSecret(adminToken);
       } catch (_e) {
-        // Ignore -- backend may reject token but actor is still usable
+        // Ignore -- the actor is still valid; individual calls will be authorized
       }
-
       return actor;
     },
     staleTime: Number.POSITIVE_INFINITY,
     enabled: true,
     retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
   });
 
   // When the actor changes, invalidate dependent queries
@@ -60,10 +57,7 @@ export function useActor() {
   }, [actorQuery.data, queryClient]);
 
   const refetch = () => {
-    // Clear cached failure then retry
-    queryClient.removeQueries({
-      queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
-    });
+    queryClient.removeQueries({ queryKey: [ACTOR_QUERY_KEY] });
     actorQuery.refetch();
   };
 
