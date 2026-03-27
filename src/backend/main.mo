@@ -284,14 +284,14 @@ actor {
 
     let intervalNanos : Int = 1_800_000_000_000;
     let currentTime = Time.now();
-    var slots = [dateStartNanos];
-    var nextSlot = dateStartNanos + intervalNanos;
+    var slots : [Int] = [];
+    var nextSlot = dateStartNanos;
 
     while (nextSlot <= dateEndNanos) {
       if (nextSlot >= currentTime and IntervalIsAvailable(resourceId, nextSlot, nextSlot + intervalNanos)) {
         slots := slots.concat([nextSlot]);
-        nextSlot += intervalNanos;
       };
+      nextSlot += intervalNanos;
     };
     slots;
   };
@@ -299,13 +299,15 @@ actor {
   func IntervalIsAvailable(resourceId : Nat, slotStart : Int, slotEnd : Int) : Bool {
     let blocked = bookings.values().any(
       func(booking) {
-        (booking.resourceId == resourceId) and (booking.startTime <= slotEnd) and (booking.status == #pending or booking.status == #confirmed);
+        (booking.resourceId == resourceId) and
+        (booking.status == #pending or booking.status == #confirmed) and
+        hasOverlap(slotStart, slotEnd, booking.startTime, booking.startTime + (booking.durationMins * 60 * 1_000_000_000) + (10 * 60 * 1_000_000_000));
       }
     );
     if (blocked) { return false };
-    blockedSlots.values().all(
+    not blockedSlots.values().any(
       func(slot) {
-        (slot.resourceId != resourceId) or (slot.startTime > slotEnd)
+        (slot.resourceId == resourceId) and hasOverlap(slotStart, slotEnd, slot.startTime, slot.endTime)
       }
     );
   };

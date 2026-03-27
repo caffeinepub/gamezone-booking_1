@@ -52,12 +52,7 @@ function getErrorMessage(err: unknown): string {
 }
 
 export default function AdminPage({ onNavigate }: Props) {
-  const {
-    actor,
-    isFetching: actorLoading,
-    isError: actorError,
-    refetch: retryActor,
-  } = useActor();
+  const { actor, isFetching: actorLoading } = useActor();
   const { identity, login, isLoggingIn } = useInternetIdentity();
 
   const [checking, setChecking] = useState(true);
@@ -86,6 +81,9 @@ export default function AdminPage({ onNavigate }: Props) {
   const [newCouponCode, setNewCouponCode] = useState("");
   const [newCouponDiscount, setNewCouponDiscount] = useState("");
   const [addingCoupon, setAddingCoupon] = useState(false);
+
+  // Connection error state: actor is null and not loading means connection failed
+  const actorError = !actor && !actorLoading;
 
   useEffect(() => {
     if (identity) {
@@ -142,7 +140,7 @@ export default function AdminPage({ onNavigate }: Props) {
       return;
     }
     if (!actor) {
-      toast.error("Backend not connected. Please wait or click Retry.");
+      toast.error("Backend not connected. Please wait or refresh the page.");
       return;
     }
     setAddingRes(true);
@@ -435,17 +433,17 @@ export default function AdminPage({ onNavigate }: Props) {
                     </p>
                   )}
 
-                  {actorError && !actorLoading && (
+                  {actorError && (
                     <div className="flex items-center gap-3 mt-3">
                       <p className="text-xs text-destructive">
                         Backend connection failed.
                       </p>
                       <button
                         type="button"
-                        onClick={() => retryActor()}
+                        onClick={() => window.location.reload()}
                         className="text-xs text-primary underline hover:no-underline"
                       >
-                        Retry
+                        Refresh
                       </button>
                     </div>
                   )}
