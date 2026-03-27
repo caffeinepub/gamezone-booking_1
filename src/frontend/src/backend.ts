@@ -94,6 +94,11 @@ export interface AdminStats {
     todayRevenue: bigint;
     weekRevenue: bigint;
 }
+export interface Coupon {
+    code: string;
+    discountPercent: bigint;
+    isActive: boolean;
+}
 export interface Resource {
     id: bigint;
     name: string;
@@ -118,17 +123,16 @@ export interface Booking {
     resourceType: ResourceType;
     totalAmount: bigint;
 }
-export interface Coupon {
-    code: string;
-    discountPercent: bigint;
-    isActive: boolean;
-}
 export interface BlockedSlot {
     id: bigint;
     startTime: bigint;
     endTime: bigint;
     resourceId: bigint;
     reason: string;
+}
+export interface UserProfile {
+    name: string;
+    phone: string;
 }
 export enum BookingStatus {
     cancelled = "cancelled",
@@ -168,16 +172,19 @@ export interface backendInterface {
     getAvailableSlots(resourceId: bigint, dateStartNanos: bigint, dateEndNanos: bigint): Promise<Array<bigint>>;
     getBlockedSlotsForResource(resourceId: bigint): Promise<Array<BlockedSlot>>;
     getBooking(bookingId: bigint): Promise<Booking>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCoupon(code: string): Promise<Coupon>;
     getResource(resourceId: bigint): Promise<Resource>;
     getResourcesByType(resourceType: ResourceType): Promise<Array<Resource>>;
     getUserBookings(userId: Principal): Promise<Array<Booking>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateBookingStatus(bookingId: bigint, status: BookingStatus): Promise<Booking>;
 }
-import type { Booking as _Booking, BookingStatus as _BookingStatus, PaymentMethod as _PaymentMethod, Resource as _Resource, ResourceType as _ResourceType, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Booking as _Booking, BookingStatus as _BookingStatus, PaymentMethod as _PaymentMethod, Resource as _Resource, ResourceType as _ResourceType, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -390,18 +397,32 @@ export class Backend implements backendInterface {
             return from_candid_Booking_n9(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserProfile();
+                return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserProfile();
+            return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n19(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n19(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n20(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCoupon(arg0: string): Promise<Coupon> {
@@ -460,6 +481,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUserProfile(arg0);
+                return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserProfile(arg0);
+            return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async initializeSystem(): Promise<void> {
         if (this.processError) {
             try {
@@ -488,17 +523,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveCallerUserProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
     async updateBookingStatus(arg0: bigint, arg1: BookingStatus): Promise<Booking> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateBookingStatus(arg0, to_candid_BookingStatus_n21(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateBookingStatus(arg0, to_candid_BookingStatus_n22(this._uploadFile, this._downloadFile, arg1));
                 return from_candid_Booking_n9(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateBookingStatus(arg0, to_candid_BookingStatus_n21(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateBookingStatus(arg0, to_candid_BookingStatus_n22(this._uploadFile, this._downloadFile, arg1));
             return from_candid_Booking_n9(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -518,8 +567,11 @@ function from_candid_ResourceType_n5(_uploadFile: (file: ExternalBlob) => Promis
 function from_candid_Resource_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Resource): Resource {
     return from_candid_record_n4(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n20(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n21(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
 }
 function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
@@ -613,7 +665,7 @@ function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): PaymentMethod {
     return "upi" in value ? PaymentMethod.upi : "creditCard" in value ? PaymentMethod.creditCard : "cash" in value ? PaymentMethod.cash : value;
 }
-function from_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -639,8 +691,8 @@ function from_candid_vec_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Resource>): Array<Resource> {
     return value.map((x)=>from_candid_Resource_n3(_uploadFile, _downloadFile, x));
 }
-function to_candid_BookingStatus_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): _BookingStatus {
-    return to_candid_variant_n22(_uploadFile, _downloadFile, value);
+function to_candid_BookingStatus_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): _BookingStatus {
+    return to_candid_variant_n23(_uploadFile, _downloadFile, value);
 }
 function to_candid_PaymentMethod_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: PaymentMethod): _PaymentMethod {
     return to_candid_variant_n16(_uploadFile, _downloadFile, value);
@@ -685,7 +737,7 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         poolTable: null
     } : value;
 }
-function to_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): {
+function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): {
     cancelled: null;
 } | {
     pending: null;

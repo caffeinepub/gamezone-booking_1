@@ -14,8 +14,8 @@ const GAMES = [
     icon: "🎱",
     title: "8 Ball Pool",
     desc: "Premium quality pool tables with professional-grade cloth and accessories.",
-    priceHr: 80,
-    priceHalf: 50,
+    priceHr: 200,
+    priceHalf: 120,
     color: "secondary",
   },
   {
@@ -23,8 +23,8 @@ const GAMES = [
     icon: "🎮",
     title: "PS4 Gaming",
     desc: "Latest PS4 titles with DualShock controllers and 4K displays.",
-    priceHr: 60,
-    priceHalf: 40,
+    priceHr: 120,
+    priceHalf: 50,
     color: "primary",
   },
   {
@@ -32,8 +32,8 @@ const GAMES = [
     icon: "🕹️",
     title: "PS5 Zone",
     desc: "Next-gen gaming with haptic feedback DualSense and 120fps support.",
-    priceHr: 100,
-    priceHalf: 60,
+    priceHr: 150,
+    priceHalf: 70,
     color: "accent",
   },
   {
@@ -42,7 +42,7 @@ const GAMES = [
     title: "Snooker",
     desc: "Full-size snooker tables with professional cues and accessories.",
     priceHr: 250,
-    priceHalf: 150,
+    priceHalf: 180,
     color: "secondary",
   },
 ];

@@ -62,6 +62,7 @@ export type ResourceType = { 'snookerTable' : null } |
   { 'ps4Console' : null } |
   { 'ps5Console' : null } |
   { 'poolTable' : null };
+export interface UserProfile { 'name' : string, 'phone' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -84,13 +85,16 @@ export interface _SERVICE {
   'getAvailableSlots' : ActorMethod<[bigint, bigint, bigint], Array<bigint>>,
   'getBlockedSlotsForResource' : ActorMethod<[bigint], Array<BlockedSlot>>,
   'getBooking' : ActorMethod<[bigint], Booking>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCoupon' : ActorMethod<[string], Coupon>,
   'getResource' : ActorMethod<[bigint], Resource>,
   'getResourcesByType' : ActorMethod<[ResourceType], Array<Resource>>,
   'getUserBookings' : ActorMethod<[Principal], Array<Booking>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'initializeSystem' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateBookingStatus' : ActorMethod<[bigint, BookingStatus], Booking>,
 }
 export declare const idlService: IDL.ServiceClass;

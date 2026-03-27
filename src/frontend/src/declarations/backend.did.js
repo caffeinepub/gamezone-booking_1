@@ -71,6 +71,10 @@ export const AdminStats = IDL.Record({
   'todayRevenue' : IDL.Nat,
   'weekRevenue' : IDL.Nat,
 });
+export const UserProfile = IDL.Record({
+  'name' : IDL.Text,
+  'phone' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -117,6 +121,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getBooking' : IDL.Func([IDL.Nat], [Booking], ['query']),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCoupon' : IDL.Func([IDL.Text], [Coupon], ['query']),
   'getResource' : IDL.Func([IDL.Nat], [Resource], ['query']),
@@ -126,8 +131,14 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getUserBookings' : IDL.Func([IDL.Principal], [IDL.Vec(Booking)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
   'initializeSystem' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [Booking], []),
 });
 
@@ -197,6 +208,7 @@ export const idlFactory = ({ IDL }) => {
     'todayRevenue' : IDL.Nat,
     'weekRevenue' : IDL.Nat,
   });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text, 'phone' : IDL.Text });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -243,6 +255,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getBooking' : IDL.Func([IDL.Nat], [Booking], ['query']),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCoupon' : IDL.Func([IDL.Text], [Coupon], ['query']),
     'getResource' : IDL.Func([IDL.Nat], [Resource], ['query']),
@@ -256,8 +269,14 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Booking)],
         ['query'],
       ),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
     'initializeSystem' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [Booking], []),
   });
 };

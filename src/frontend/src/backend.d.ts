@@ -12,6 +12,11 @@ export interface AdminStats {
     todayRevenue: bigint;
     weekRevenue: bigint;
 }
+export interface Coupon {
+    code: string;
+    discountPercent: bigint;
+    isActive: boolean;
+}
 export interface Resource {
     id: bigint;
     name: string;
@@ -36,17 +41,16 @@ export interface Booking {
     resourceType: ResourceType;
     totalAmount: bigint;
 }
-export interface Coupon {
-    code: string;
-    discountPercent: bigint;
-    isActive: boolean;
-}
 export interface BlockedSlot {
     id: bigint;
     startTime: bigint;
     endTime: bigint;
     resourceId: bigint;
     reason: string;
+}
+export interface UserProfile {
+    name: string;
+    phone: string;
 }
 export enum BookingStatus {
     cancelled = "cancelled",
@@ -85,12 +89,15 @@ export interface backendInterface {
     getAvailableSlots(resourceId: bigint, dateStartNanos: bigint, dateEndNanos: bigint): Promise<Array<bigint>>;
     getBlockedSlotsForResource(resourceId: bigint): Promise<Array<BlockedSlot>>;
     getBooking(bookingId: bigint): Promise<Booking>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCoupon(code: string): Promise<Coupon>;
     getResource(resourceId: bigint): Promise<Resource>;
     getResourcesByType(resourceType: ResourceType): Promise<Array<Resource>>;
     getUserBookings(userId: Principal): Promise<Array<Booking>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateBookingStatus(bookingId: bigint, status: BookingStatus): Promise<Booking>;
 }

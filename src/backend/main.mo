@@ -64,11 +64,17 @@ actor {
     weekRevenue : Nat;
   };
 
+  public type UserProfile = {
+    name : Text;
+    phone : Text;
+  };
+
   // Data Storage
   let resources = Map.empty<Nat, Resource>();
   let bookings = Map.empty<Nat, Booking>();
   let blockedSlots = Map.empty<Nat, BlockedSlot>();
   let coupons = Map.empty<Text, Coupon>();
+  let userProfiles = Map.empty<Principal, UserProfile>();
 
   var resourceIdCounter = 0;
   var bookingIdCounter = 0;
@@ -78,11 +84,26 @@ actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // Helper: require caller to be authenticated (not anonymous)
-  func requireAuthenticated(caller : Principal) {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: You must be logged in");
+  // User Profile Management
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
     };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
   };
 
   // Comparison Functions
@@ -174,7 +195,9 @@ actor {
 
   // Initialization - Seed default resources
   public shared ({ caller }) func initializeSystem() : async () {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can initialize the system");
+    };
 
     if (resources.size() > 0) {
       Runtime.trap("System already initialized");
@@ -206,7 +229,9 @@ actor {
 
   // Booking Creation
   public shared ({ caller }) func createBooking(userId : Principal, userName : Text, userPhone : Text, resourceId : Nat, durationMins : Nat, startTime : Int, paymentMethod : PaymentMethod, couponCode : Text) : async Booking {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create bookings");
+    };
 
     let currentTime = Time.now();
     if (startTime > currentTime + 2_592_000_000_000_000) {
@@ -322,7 +347,10 @@ actor {
 
   // Cancel Booking
   public shared ({ caller }) func cancelBooking(bookingId : Nat) : async Booking {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can cancel bookings");
+    };
+
     let booking = getBookingInternal(bookingId);
     let currentTime = Time.now();
 
@@ -354,9 +382,11 @@ actor {
     updatedBooking;
   };
 
-  // Add Resource - requires login only
+  // Add Resource - requires user authentication
   public shared ({ caller }) func addResource(name : Text, resourceType : ResourceType, basePricePerHour : Nat, basePricePerHalfHour : Nat) : async Resource {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add resources");
+    };
 
     if (name.size() < 5) {
       Runtime.trap("Name must be at least 5 characters long");
@@ -383,9 +413,11 @@ actor {
     resource;
   };
 
-  // Block Slot - requires login
+  // Block Slot - requires user authentication
   public shared ({ caller }) func blockSlot(resourceId : Nat, startTime : Int, endTime : Int, reason : Text) : async BlockedSlot {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can block slots");
+    };
 
     let resource = getResourceInternal(resourceId);
     if (not resource.isActive) {
@@ -408,9 +440,11 @@ actor {
     slot;
   };
 
-  // Add Coupon - requires login
+  // Add Coupon - requires user authentication
   public shared ({ caller }) func addCoupon(code : Text, discountPercent : Nat) : async Coupon {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add coupons");
+    };
 
     if (code.size() < 5) {
       Runtime.trap("Coupon code must be at least 5 characters");
@@ -429,37 +463,40 @@ actor {
     coupon;
   };
 
-  // Get All Bookings - requires login
+  // Get All Bookings - requires user authentication
   public query ({ caller }) func getAllBookings() : async [Booking] {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: You must be logged in");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view all bookings");
     };
     bookings.values().toArray().sort(Booking.compareByStartTime);
   };
 
-  // Get User Bookings
+  // Get User Bookings - public query
   public query ({ caller }) func getUserBookings(userId : Principal) : async [Booking] {
     bookings.values().toArray().filter(func(b) { b.userId == userId }).sort(Booking.compareByStartTime);
   };
 
-  // Get Active Coupons
+  // Get Active Coupons - public query
   public query ({ caller }) func getActiveCoupons() : async [Coupon] {
     coupons.values().toArray().sort().filter(func(c) { c.isActive });
   };
 
-  // Get Resources By Type
+  // Get Resources By Type - public query
   public query ({ caller }) func getResourcesByType(resourceType : ResourceType) : async [Resource] {
     resources.values().toArray().sort().filter(func(r) { r.resourceType == resourceType and r.isActive });
   };
 
-  // Get Blocked Slots for Resource
+  // Get Blocked Slots for Resource - public query
   public query ({ caller }) func getBlockedSlotsForResource(resourceId : Nat) : async [BlockedSlot] {
     blockedSlots.values().toArray().filter(func(s) { s.resourceId == resourceId }).sort();
   };
 
-  // Update Booking Status - requires login
+  // Update Booking Status - requires user authentication
   public shared ({ caller }) func updateBookingStatus(bookingId : Nat, status : BookingStatus) : async Booking {
-    requireAuthenticated(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update booking status");
+    };
+
     let booking = getBookingInternal(bookingId);
     let updatedBooking = {
       id = booking.id;
@@ -481,10 +518,10 @@ actor {
     updatedBooking;
   };
 
-  // Get Admin Stats - requires login
+  // Get Admin Stats - requires user authentication
   public query ({ caller }) func getAdminStats() : async AdminStats {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: You must be logged in");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view admin stats");
     };
 
     let currentTime = Time.now();
@@ -505,30 +542,30 @@ actor {
     };
   };
 
-  // Get Booking Details
+  // Get Booking Details - public query
   public query ({ caller }) func getBooking(bookingId : Nat) : async Booking {
     getBookingInternal(bookingId);
   };
 
-  // Get Resource Details
+  // Get Resource Details - public query
   public query ({ caller }) func getResource(resourceId : Nat) : async Resource {
     getResourceInternal(resourceId);
   };
 
-  // Get Coupon Details
+  // Get Coupon Details - public query
   public query ({ caller }) func getCoupon(code : Text) : async Coupon {
     getCouponInternal(code);
   };
 
-  // Get All Resources
+  // Get All Resources - public query
   public query ({ caller }) func getAllResources() : async [Resource] {
     resources.values().toArray().sort();
   };
 
-  // Get All Blocked Slots - requires login
+  // Get All Blocked Slots - requires user authentication
   public query ({ caller }) func getAllBlockedSlots() : async [BlockedSlot] {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: You must be logged in");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view all blocked slots");
     };
     blockedSlots.values().toArray().sort();
   };

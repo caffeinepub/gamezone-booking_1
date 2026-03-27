@@ -20,6 +20,7 @@ import {
 } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { getSecretParameter } from "../utils/urlParams";
 
 interface Props {
   onNavigate: (page: Page) => void;
@@ -52,7 +53,7 @@ function getErrorMessage(err: unknown): string {
 }
 
 export default function AdminPage({ onNavigate }: Props) {
-  const { actor, isFetching: actorLoading } = useActor();
+  const { actor, isFetching: actorLoading, isError, refetch } = useActor();
   const { identity, login, isLoggingIn } = useInternetIdentity();
 
   const [checking, setChecking] = useState(true);
@@ -82,8 +83,8 @@ export default function AdminPage({ onNavigate }: Props) {
   const [newCouponDiscount, setNewCouponDiscount] = useState("");
   const [addingCoupon, setAddingCoupon] = useState(false);
 
-  // Connection error state: actor is null and not loading means connection failed
-  const actorError = !actor && !actorLoading;
+  // Connection error state
+  const actorError = isError || (!actor && !actorLoading);
 
   useEffect(() => {
     if (identity) {
@@ -96,27 +97,52 @@ export default function AdminPage({ onNavigate }: Props) {
 
   useEffect(() => {
     if (!actor || !isAdmin || !identity) return;
-    Promise.all([
-      actor.getAdminStats(),
-      actor.getAllResources(),
-      actor.getActiveCoupons(),
-    ])
-      .then(([s, r, c]) => {
+    const loadAdminData = async () => {
+      try {
+        // Ensure user is registered in access control before loading data
+        const adminToken = getSecretParameter("caffeineAdminToken") || "";
+        await actor._initializeAccessControlWithSecret(adminToken);
+      } catch (_e) {
+        // Ignore token errors -- proceed to load data
+      }
+      try {
+        const [s, r, c] = await Promise.all([
+          actor.getAdminStats(),
+          actor.getAllResources(),
+          actor.getActiveCoupons(),
+        ]);
         setStats(s);
         setResources(r);
         setCoupons(c);
-      })
-      .catch(() => toast.error("Failed to load admin data"));
+      } catch (err) {
+        console.error("Failed to load admin data", err);
+        toast.error("Failed to load admin data");
+      }
+    };
+    loadAdminData();
   }, [actor, isAdmin, identity]);
 
   useEffect(() => {
     if (!actor || !isAdmin || !identity || activeTab !== "bookings") return;
     setLoadingBookings(true);
-    actor
-      .getAllBookings()
-      .then(setBookings)
-      .catch(() => toast.error("Failed to load bookings"))
-      .finally(() => setLoadingBookings(false));
+    const loadBookings = async () => {
+      try {
+        const adminToken = getSecretParameter("caffeineAdminToken") || "";
+        await actor._initializeAccessControlWithSecret(adminToken);
+      } catch (_e) {
+        // Ignore
+      }
+      try {
+        const result = await actor.getAllBookings();
+        setBookings(result);
+      } catch (err) {
+        console.error("Failed to load bookings", err);
+        toast.error("Failed to load bookings");
+      } finally {
+        setLoadingBookings(false);
+      }
+    };
+    loadBookings();
   }, [actor, isAdmin, identity, activeTab]);
 
   const handleAddResource = async () => {
@@ -140,7 +166,7 @@ export default function AdminPage({ onNavigate }: Props) {
       return;
     }
     if (!actor) {
-      toast.error("Backend not connected. Please wait or refresh the page.");
+      toast.error("Backend not connected. Please wait or retry.");
       return;
     }
     setAddingRes(true);
@@ -434,16 +460,20 @@ export default function AdminPage({ onNavigate }: Props) {
                   )}
 
                   {actorError && (
-                    <div className="flex items-center gap-3 mt-3">
+                    <div
+                      className="flex items-center gap-3 mt-3"
+                      data-ocid="admin.resource.error_state"
+                    >
                       <p className="text-xs text-destructive">
                         Backend connection failed.
                       </p>
                       <button
                         type="button"
-                        onClick={() => window.location.reload()}
+                        onClick={refetch}
                         className="text-xs text-primary underline hover:no-underline"
+                        data-ocid="admin.resource.retry.button"
                       >
-                        Refresh
+                        Retry
                       </button>
                     </div>
                   )}
