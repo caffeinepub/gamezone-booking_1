@@ -120,7 +120,7 @@ export default function AdminPage({ onNavigate }: Props) {
     const loadBookings = async () => {
       try {
         const result = await actor.getAllBookings();
-        setBookings(result);
+        setBookings([...result].reverse());
       } catch (err) {
         console.error("Failed to load bookings", err);
         toast.error("Failed to load bookings");

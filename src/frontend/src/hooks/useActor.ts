@@ -26,20 +26,17 @@ export function useActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
-      // Wrap in try/catch -- if this fails the actor is still valid
-      // (init failure just means the user may not be registered yet)
+      const adminToken = getSecretParameter("caffeineAdminToken") || "";
       try {
-        const adminToken = getSecretParameter("caffeineAdminToken") || "";
         await actor._initializeAccessControlWithSecret(adminToken);
-      } catch (_e) {
-        // ignore -- user may already be registered or token not needed
+      } catch (_) {
+        // ignore — actor is still usable
       }
       return actor;
     },
     // Only refetch when identity changes
     staleTime: Number.POSITIVE_INFINITY,
     retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
     enabled: true,
   });
 
