@@ -164,6 +164,14 @@ actor {
     start1 < end2 and start2 < end1;
   };
 
+  func countDigits(s : Text) : Nat {
+    var count = 0;
+    for (c in s.chars()) {
+      if (c >= '0' and c <= '9') { count += 1 };
+    };
+    count;
+  };
+
   // Initialization - Seed default resources
   public shared ({ caller }) func initializeSystem() : async () {
     requireAuthenticated(caller);
@@ -201,8 +209,8 @@ actor {
     requireAuthenticated(caller);
 
     let currentTime = Time.now();
-    if (startTime > currentTime + 21_600_000_000_000) {
-      Runtime.trap("Cannot book slots more than 6 hours in advance");
+    if (startTime > currentTime + 2_592_000_000_000_000) {
+      Runtime.trap("Cannot book slots more than 30 days in advance");
     };
 
     let resource = getResourceInternal(resourceId);
@@ -210,8 +218,8 @@ actor {
       Runtime.trap("Resource is not available");
     };
 
-    if (userPhone.size() != 10) {
-      Runtime.trap("Phone number must be exactly 10 digits");
+    if (countDigits(userPhone) < 10) {
+      Runtime.trap("Please enter a valid phone number (at least 10 digits)");
     };
 
     let endTime = startTime + (durationMins * 60 * 1_000_000_000);
