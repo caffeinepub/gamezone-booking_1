@@ -38,20 +38,9 @@ const PAYMENT_OPTIONS = [
   { value: PaymentMethod.cash, label: "Pay at Venue", icon: "💵" },
 ];
 
-function isPeakHour(date: Date): boolean {
-  const h = date.getHours();
-  return h >= 18 && h < 22;
-}
-
-function calcPrice(
-  resource: Resource,
-  durationMins: number,
-  startTime: bigint,
-): number {
+function calcPrice(resource: Resource, durationMins: number): number {
   const halfHours = durationMins / 30;
-  const base = Number(resource.basePricePerHalfHour) * halfHours;
-  const slotDate = new Date(Number(startTime / 1_000_000n));
-  return isPeakHour(slotDate) ? Math.round(base * 1.5) : base;
+  return Number(resource.basePricePerHalfHour) * halfHours;
 }
 
 export default function BookingPage({ selectedGameType, onNavigate }: Props) {
@@ -138,7 +127,7 @@ export default function BookingPage({ selectedGameType, onNavigate }: Props) {
   const gameInfo = GAME_LABELS[selectedGameType];
   const estimatedPrice =
     selectedResource && selectedSlot
-      ? calcPrice(selectedResource, durationMins, selectedSlot)
+      ? calcPrice(selectedResource, durationMins)
       : 0;
 
   const STEPS = ["Select", "Date & Time", "Confirm", "Done"];
@@ -343,7 +332,6 @@ export default function BookingPage({ selectedGameType, onNavigate }: Props) {
                           minute: "2-digit",
                           hour12: true,
                         });
-                        const peak = isPeakHour(slotDate);
                         return (
                           <button
                             type="button"
@@ -353,13 +341,10 @@ export default function BookingPage({ selectedGameType, onNavigate }: Props) {
                             className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-all duration-200 ${
                               selectedSlot === slot
                                 ? "border-primary bg-primary/20 text-primary shadow-neon-cyan"
-                                : peak
-                                  ? "border-accent/60 text-accent hover:border-accent hover:bg-accent/10"
-                                  : "border-border text-foreground hover:border-primary hover:bg-primary/10"
+                                : "border-border text-foreground hover:border-primary hover:bg-primary/10"
                             }`}
                           >
                             {label}
-                            {peak ? " 🔥" : ""}
                           </button>
                         );
                       })}
@@ -473,12 +458,6 @@ export default function BookingPage({ selectedGameType, onNavigate }: Props) {
                     </p>
                   </div>
                 </div>
-                {selectedSlot &&
-                  isPeakHour(new Date(Number(selectedSlot / 1_000_000n))) && (
-                    <p className="text-xs text-accent mt-3 font-medium">
-                      🔥 Peak hours (6PM–10PM): 1.5× pricing applied
-                    </p>
-                  )}
               </div>
 
               {/* Guest prompt */}
