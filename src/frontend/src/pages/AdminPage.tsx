@@ -20,7 +20,6 @@ import {
 } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { getSecretParameter } from "../utils/urlParams";
 
 interface Props {
   onNavigate: (page: Page) => void;
@@ -99,13 +98,6 @@ export default function AdminPage({ onNavigate }: Props) {
     if (!actor || !isAdmin || !identity) return;
     const loadAdminData = async () => {
       try {
-        // Ensure user is registered in access control before loading data
-        const adminToken = getSecretParameter("caffeineAdminToken") || "";
-        await actor._initializeAccessControlWithSecret(adminToken);
-      } catch (_e) {
-        // Ignore token errors -- proceed to load data
-      }
-      try {
         const [s, r, c] = await Promise.all([
           actor.getAdminStats(),
           actor.getAllResources(),
@@ -126,12 +118,6 @@ export default function AdminPage({ onNavigate }: Props) {
     if (!actor || !isAdmin || !identity || activeTab !== "bookings") return;
     setLoadingBookings(true);
     const loadBookings = async () => {
-      try {
-        const adminToken = getSecretParameter("caffeineAdminToken") || "";
-        await actor._initializeAccessControlWithSecret(adminToken);
-      } catch (_e) {
-        // Ignore
-      }
       try {
         const result = await actor.getAllBookings();
         setBookings(result);

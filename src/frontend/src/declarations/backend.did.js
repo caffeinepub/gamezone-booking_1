@@ -138,8 +138,8 @@ export const idlService = IDL.Service({
     ),
   'initializeSystem' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [Booking], []),
+  'updateCallerUserProfile' : IDL.Func([IDL.Text, IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -276,8 +276,8 @@ export const idlFactory = ({ IDL }) => {
       ),
     'initializeSystem' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [Booking], []),
+    'updateCallerUserProfile' : IDL.Func([IDL.Text, IDL.Text], [], []),
   });
 };
 

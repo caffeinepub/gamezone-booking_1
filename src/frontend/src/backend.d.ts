@@ -98,6 +98,6 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateBookingStatus(bookingId: bigint, status: BookingStatus): Promise<Booking>;
+    updateCallerUserProfile(name: string, phone: string): Promise<void>;
 }

@@ -181,8 +181,8 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateBookingStatus(bookingId: bigint, status: BookingStatus): Promise<Booking>;
+    updateCallerUserProfile(name: string, phone: string): Promise<void>;
 }
 import type { Booking as _Booking, BookingStatus as _BookingStatus, PaymentMethod as _PaymentMethod, Resource as _Resource, ResourceType as _ResourceType, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -523,20 +523,6 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.saveCallerUserProfile(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.saveCallerUserProfile(arg0);
-            return result;
-        }
-    }
     async updateBookingStatus(arg0: bigint, arg1: BookingStatus): Promise<Booking> {
         if (this.processError) {
             try {
@@ -549,6 +535,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.updateBookingStatus(arg0, to_candid_BookingStatus_n22(this._uploadFile, this._downloadFile, arg1));
             return from_candid_Booking_n9(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async updateCallerUserProfile(arg0: string, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateCallerUserProfile(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateCallerUserProfile(arg0, arg1);
+            return result;
         }
     }
 }

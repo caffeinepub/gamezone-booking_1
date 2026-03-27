@@ -8,10 +8,12 @@ import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
+import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+(with migration = Migration.run)
 actor {
   // Types
   type BookingStatus = { #pending; #confirmed; #completed; #cancelled };
@@ -84,6 +86,13 @@ actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
+  // Helper for admin-only functions (removed autoRegisterUser)
+  func requireAdmin(caller : Principal) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+  };
+
   // User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -92,18 +101,22 @@ actor {
     userProfiles.get(caller);
   };
 
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
-    userProfiles.get(user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+  public shared ({ caller }) func updateCallerUserProfile(name : Text, phone : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+      Runtime.trap("Unauthorized: Only users can update profiles");
+    };
+    let profile : UserProfile = {
+      name;
+      phone;
     };
     userProfiles.add(caller, profile);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
+    userProfiles.get(user);
   };
 
   // Comparison Functions
@@ -195,9 +208,7 @@ actor {
 
   // Initialization - Seed default resources
   public shared ({ caller }) func initializeSystem() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can initialize the system");
-    };
+    requireAdmin(caller);
 
     if (resources.size() > 0) {
       Runtime.trap("System already initialized");
@@ -231,11 +242,6 @@ actor {
   public shared ({ caller }) func createBooking(userId : Principal, userName : Text, userPhone : Text, resourceId : Nat, durationMins : Nat, startTime : Int, paymentMethod : PaymentMethod, couponCode : Text) : async Booking {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create bookings");
-    };
-
-    let currentTime = Time.now();
-    if (startTime > currentTime + 2_592_000_000_000_000) {
-      Runtime.trap("Cannot book slots more than 30 days in advance");
     };
 
     let resource = getResourceInternal(resourceId);
@@ -276,11 +282,13 @@ actor {
     };
 
     var dailyBookingCount = 0;
+    let currentTime = Time.now();
     for (booking in bookings.values()) {
       if (booking.userId == userId and (booking.startTime > currentTime - 86_400_000_000_000) and (booking.startTime < currentTime + 86_400_000_000_000)) {
         dailyBookingCount += 1;
       };
     };
+
     if (dailyBookingCount >= 4) {
       Runtime.trap("You have reached the daily booking limit");
     };
@@ -564,9 +572,6 @@ actor {
 
   // Get All Blocked Slots - requires user authentication
   public query ({ caller }) func getAllBlockedSlots() : async [BlockedSlot] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view all blocked slots");
-    };
     blockedSlots.values().toArray().sort();
   };
 };
