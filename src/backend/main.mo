@@ -360,11 +360,6 @@ actor {
     };
 
     let booking = getBookingInternal(bookingId);
-    let currentTime = Time.now();
-
-    if (booking.startTime <= currentTime + 7_200_000_000_000) {
-      Runtime.trap("Cannot cancel booking within 2 hours of start time");
-    };
 
     if (booking.status == #cancelled) {
       Runtime.trap("Booking is already cancelled");
