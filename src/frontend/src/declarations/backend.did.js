@@ -91,6 +91,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'cancelBooking' : IDL.Func([IDL.Nat], [Booking], []),
+    'clearAllBookings' : IDL.Func([], [IDL.Nat], []),
   'createBooking' : IDL.Func(
       [
         IDL.Principal,
@@ -225,6 +226,8 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'cancelBooking' : IDL.Func([IDL.Nat], [Booking], []),
+    'clearAllBookings' : IDL.Func([], [IDL.Nat], []),
+    'clearAllBookings' : IDL.Func([], [IDL.Nat], []),
     'createBooking' : IDL.Func(
         [
           IDL.Principal,

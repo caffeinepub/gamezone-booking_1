@@ -80,6 +80,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     blockSlot(resourceId: bigint, startTime: bigint, endTime: bigint, reason: string): Promise<BlockedSlot>;
     cancelBooking(bookingId: bigint): Promise<Booking>;
+    clearAllBookings(): Promise<bigint>;
     createBooking(userId: Principal, userName: string, userPhone: string, resourceId: bigint, durationMins: bigint, startTime: bigint, paymentMethod: PaymentMethod, couponCode: string): Promise<Booking>;
     getActiveCoupons(): Promise<Array<Coupon>>;
     getAdminStats(): Promise<AdminStats>;

@@ -163,6 +163,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     blockSlot(resourceId: bigint, startTime: bigint, endTime: bigint, reason: string): Promise<BlockedSlot>;
     cancelBooking(bookingId: bigint): Promise<Booking>;
+    clearAllBookings(): Promise<bigint>;
     createBooking(userId: Principal, userName: string, userPhone: string, resourceId: bigint, durationMins: bigint, startTime: bigint, paymentMethod: PaymentMethod, couponCode: string): Promise<Booking>;
     getActiveCoupons(): Promise<Array<Coupon>>;
     getAdminStats(): Promise<AdminStats>;
@@ -269,6 +270,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.cancelBooking(arg0);
             return from_candid_Booking_n9(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async clearAllBookings(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.clearAllBookings();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.clearAllBookings();
+            return result;
         }
     }
     async createBooking(arg0: Principal, arg1: string, arg2: string, arg3: bigint, arg4: bigint, arg5: bigint, arg6: PaymentMethod, arg7: string): Promise<Booking> {

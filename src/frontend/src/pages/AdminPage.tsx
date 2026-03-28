@@ -193,6 +193,24 @@ export default function AdminPage({ onNavigate }: Props) {
     }
   };
 
+  const handleClearAllBookings = async () => {
+    if (!actor) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to DELETE ALL booking data? This cannot be undone.",
+      )
+    )
+      return;
+    try {
+      const count = await actor.clearAllBookings();
+      setBookings([]);
+      toast.success(`Cleared ${count} booking(s) successfully`);
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Failed to clear bookings");
+    }
+  };
+
   const handleAddCoupon = async () => {
     if (!actor || !newCouponCode.trim() || !newCouponDiscount) {
       toast.error("Fill coupon fields");
@@ -565,9 +583,20 @@ export default function AdminPage({ onNavigate }: Props) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <h2 className="text-2xl font-black text-foreground uppercase mb-6">
-                  ALL BOOKINGS
-                </h2>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-black text-foreground uppercase">
+                    ALL BOOKINGS
+                  </h2>
+                  <button
+                    type="button"
+                    data-ocid="admin.bookings.clear_all"
+                    onClick={handleClearAllBookings}
+                    disabled={!isBackendReady || bookings.length === 0}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold uppercase rounded-md transition-colors"
+                  >
+                    Delete All Bookings
+                  </button>
+                </div>
                 {loadingBookings ? (
                   <div
                     className="flex justify-center py-16"

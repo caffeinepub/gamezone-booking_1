@@ -569,4 +569,17 @@ actor {
   public query ({ caller }) func getAllBlockedSlots() : async [BlockedSlot] {
     blockedSlots.values().toArray().sort();
   };
+
+  // Clear All Bookings - admin only
+  public shared ({ caller }) func clearAllBookings() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can clear bookings");
+    };
+    let count = bookings.size();
+    for (key in bookings.keys().toArray().vals()) {
+      ignore bookings.remove(key);
+    };
+    bookingIdCounter := 0;
+    count;
+  };
 };

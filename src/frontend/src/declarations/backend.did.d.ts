@@ -73,6 +73,7 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'blockSlot' : ActorMethod<[bigint, bigint, bigint, string], BlockedSlot>,
   'cancelBooking' : ActorMethod<[bigint], Booking>,
+  'clearAllBookings' : ActorMethod<[], bigint>,
   'createBooking' : ActorMethod<
     [Principal, string, string, bigint, bigint, bigint, PaymentMethod, string],
     Booking
