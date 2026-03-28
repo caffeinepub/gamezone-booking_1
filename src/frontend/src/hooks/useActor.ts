@@ -15,7 +15,6 @@ export function useActor() {
       const isAuthenticated = !!identity;
 
       if (!isAuthenticated) {
-        // Return anonymous actor if not authenticated
         return await createActorWithConfig();
       }
 
@@ -26,18 +25,20 @@ export function useActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
+      // Register the user in access control; wrap in try/catch so a failure
+      // doesn't prevent the actor from being returned.
       try {
         const adminToken = getSecretParameter("caffeineAdminToken") || "";
         await actor._initializeAccessControlWithSecret(adminToken);
-      } catch {
-        // Ignore token init errors; actor is still valid
+      } catch (e) {
+        console.warn("Access control initialization failed (non-fatal):", e);
       }
       return actor;
     },
-    // Only refetch when identity changes
     staleTime: Number.POSITIVE_INFINITY,
-    retry: 3,
     enabled: true,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
   });
 
   // When the actor changes, invalidate dependent queries
@@ -56,15 +57,13 @@ export function useActor() {
     }
   }, [actorQuery.data, queryClient]);
 
-  const refetch = () => {
-    queryClient.removeQueries({ queryKey: [ACTOR_QUERY_KEY] });
-    actorQuery.refetch();
-  };
-
   return {
     actor: actorQuery.data || null,
     isFetching: actorQuery.isFetching,
     isError: actorQuery.isError,
-    refetch,
+    refetch: () => {
+      queryClient.removeQueries({ queryKey: [ACTOR_QUERY_KEY] });
+      return actorQuery.refetch();
+    },
   };
 }
