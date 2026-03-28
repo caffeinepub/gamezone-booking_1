@@ -204,6 +204,14 @@ export default function AdminPage({ onNavigate }: Props) {
     try {
       const count = await actor.clearAllBookings();
       setBookings([]);
+      // Refresh dashboard stats so they reflect the cleared data
+      try {
+        const freshStats = await actor.getAdminStats();
+        setStats(freshStats);
+      } catch {
+        // Reset stats to zero if fetch fails
+        setStats({ todayBookingCount: 0n, todayRevenue: 0n, weekRevenue: 0n });
+      }
       toast.success(`Cleared ${count} booking(s) successfully`);
     } catch (err) {
       const msg = getErrorMessage(err);
